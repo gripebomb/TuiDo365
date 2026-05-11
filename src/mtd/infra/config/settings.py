@@ -90,11 +90,8 @@ class MtdSettings(BaseSettings):
         return settings_type()  # type: ignore[return-value,no-any-return]
 
     def effective_scopes(self) -> list[str]:
-        """Return the scopes list, ensuring ``offline_access`` is always present."""
-        scopes = list(self.scopes)
-        if "offline_access" not in scopes:
-            scopes.append("offline_access")
-        return scopes
+        """Return scopes for API calls (MSAL adds offline_access automatically)."""
+        return [s for s in self.scopes if s != "offline_access"]
 
     def is_configured(self) -> bool:
         """Return True when the minimal required fields are present."""

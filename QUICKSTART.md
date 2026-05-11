@@ -63,9 +63,8 @@ You should see a list of commands. If you get `command not found`, the virtual e
 7. Click **Authentication** → **Add a platform** → **Mobile and desktop applications**
 8. Check `https://login.microsoftonline.com/common/oauth2/nativeclient` and click **Configure**
 9. Click **API permissions** → **Add a permission** → **Microsoft Graph** → **Delegated permissions**
-10. Add these two permissions:
-    - `Tasks.ReadWrite`
-    - `offline_access`
+10. Add `Tasks.ReadWrite`.
+    The `offline_access` scope is always requested automatically by the MSAL library and does not need to be added manually.
 11. Click **Grant admin consent** (if you are an admin; otherwise you'll consent on first login)
 
 ---

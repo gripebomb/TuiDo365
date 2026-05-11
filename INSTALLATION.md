@@ -26,9 +26,8 @@ python3 --version
 6. Go to **Authentication** → **Add a platform** → **Mobile and desktop applications**.
 7. Check the redirect URI `https://login.microsoftonline.com/common/oauth2/nativeclient` and click **Configure**.
 8. Go to **API permissions** → **Add a permission** → **Microsoft Graph** → **Delegated permissions**.
-9. Search for and add:
-   - `Tasks.ReadWrite`
-   - `offline_access`
+9. Search for and add `Tasks.ReadWrite`.
+   The `offline_access` scope is always requested automatically by the MSAL library and does not need to be added manually.
 10. Click **Grant admin consent** if you are an admin, or the user will consent on first login.
 
 ## Install from source
@@ -91,7 +90,7 @@ Add this line to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to make it p
 ```toml
 client_id = "YOUR_APP_ID"
 tenant = "common"                    # or your specific tenant ID
-scopes = ["Tasks.ReadWrite", "offline_access"]
+scopes = ["Tasks.ReadWrite"]
 
 [ui]
 date_format = "%Y-%m-%d"

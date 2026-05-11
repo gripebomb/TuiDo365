@@ -88,32 +88,28 @@ class TestMtdSettingsDefaults:
 class TestEffectiveScopes:
     """Tests for MtdSettings.effective_scopes."""
 
-    def test_default_includes_offline_access(self) -> None:
+    def test_excludes_offline_access_from_api_calls(self) -> None:
+        """MSAL adds offline_access automatically; don't duplicate it."""
         settings = MtdSettings()
         scopes = settings.effective_scopes()
-        assert "offline_access" in scopes
+        assert "offline_access" not in scopes
         assert "Tasks.ReadWrite" in scopes
 
-    def test_already_present_not_duplicated(self) -> None:
+    def test_filters_out_reserved_scopes(self) -> None:
         settings = MtdSettings(scopes=["Tasks.Read", "offline_access"])
         scopes = settings.effective_scopes()
-        assert scopes.count("offline_access") == 1
+        assert scopes == ["Tasks.Read"]
 
-    def test_missing_offline_access_is_appended(self) -> None:
+    def test_passes_through_non_reserved_scopes(self) -> None:
         settings = MtdSettings(scopes=["Tasks.Read"])
         scopes = settings.effective_scopes()
-        assert scopes == ["Tasks.Read", "offline_access"]
+        assert scopes == ["Tasks.Read"]
 
     def test_does_not_mutate_original(self) -> None:
-        settings = MtdSettings(scopes=["Tasks.Read"])
+        settings = MtdSettings(scopes=["Tasks.Read", "offline_access"])
         original = list(settings.scopes)
         settings.effective_scopes()
         assert settings.scopes == original
-
-    def test_empty_scopes_gets_offline_access(self) -> None:
-        settings = MtdSettings(scopes=[])
-        scopes = settings.effective_scopes()
-        assert scopes == ["offline_access"]
 
 
 # ── is_configured ────────────────────────────────────────────────────
