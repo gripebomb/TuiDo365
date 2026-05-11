@@ -34,6 +34,7 @@ class TaskTable(Vertical):
         super().__init__(**kwargs)
         self._table: DataTable | None = None
         self._task_map: dict[Any, Task] = {}
+        self._all_tasks: list[Task] = []
 
     def compose(self) -> None:  # type: ignore[misc,override]
         yield Static("Tasks", id="table-title")
@@ -50,6 +51,10 @@ class TaskTable(Vertical):
             self._table.add_columns("Status", "Title", "Due", "Importance")
 
     def _update_tasks(self, tasks: list[Task]) -> None:
+        self._all_tasks = tasks
+        self._display_filtered(tasks)
+
+    def _display_filtered(self, tasks: list[Task]) -> None:
         if self._table is None:
             return
         self._table.clear()
