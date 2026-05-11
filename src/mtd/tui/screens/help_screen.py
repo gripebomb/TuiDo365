@@ -67,6 +67,7 @@ class HelpScreen(ModalScreen[None]):
 
 [yellow bold]General[/]
   [b]i[/b]                Toggle detail pane
+  [b]t[/b]                Toggle dark/light theme
   [b]?[/b]                Show this help
   [b]q[/b]                Quit
 """

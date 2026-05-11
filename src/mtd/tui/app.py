@@ -68,6 +68,7 @@ class MtdApp(App[None]):
         ("3", "filter_completed", "Done"),
         ("question_mark", "help", "Help"),
         ("i", "toggle_detail", "Info"),
+        ("t", "toggle_theme", "Theme"),
     ]
 
     lists: reactive[list[TaskList]] = reactive(list)
@@ -86,6 +87,8 @@ class MtdApp(App[None]):
         self._auth_service: AuthService | None = None
         self._list_service: ListService | None = None
         self._task_service: TaskService | None = None
+        # Apply saved theme
+        self.dark = self._settings.ui.theme == "dark"
         if os.environ.get("NO_COLOR"):
             self.console._color_system = None
 
@@ -387,6 +390,36 @@ class MtdApp(App[None]):
     def action_help(self) -> None:
         """Show help overlay."""
         self.push_screen(HelpScreen())
+
+    def action_toggle_theme(self) -> None:
+        """Toggle dark/light theme and persist to config."""
+        self.dark = not self.dark
+        new_theme = "dark" if self.dark else "light"
+        self._save_theme(new_theme)
+
+    def _save_theme(self, theme: str) -> None:
+        """Write theme preference back to config file."""
+        import tomllib
+        import tomli_w
+        from mtd.infra.config.paths import config_file
+
+        cfg_path = config_file()
+        cfg_path.parent.mkdir(parents=True, exist_ok=True)
+
+        data: dict[str, object] = {}
+        if cfg_path.exists():
+            try:
+                with cfg_path.open("rb") as f:
+                    data = tomllib.load(f)
+            except Exception:
+                pass
+
+        if "ui" not in data:
+            data["ui"] = {}
+        data["ui"]["theme"] = theme  # type: ignore[index]
+
+        with cfg_path.open("wb") as f:
+            tomli_w.dump(data, f)
 
     def action_toggle_detail(self) -> None:
         """Toggle detail pane visibility."""
