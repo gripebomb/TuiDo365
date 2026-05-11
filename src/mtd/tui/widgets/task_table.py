@@ -42,13 +42,15 @@ class TaskTable(Vertical):
         yield self._table
 
     def on_mount(self) -> None:
-        if self._table is not None:
-            self._table.cursor_type = "row"
-            self._table.add_columns("Status", "Title", "Due", "Importance")
         app = self.app
         app.watch(app, "tasks", self._update_tasks)
         app.watch(app, "selected_task", self._update_selection)
         app.watch(app, "error_message", self._update_error)
+
+    def _ensure_columns(self) -> None:
+        if self._table is not None and not self._table.ordered_columns:
+            self._table.cursor_type = "row"
+            self._table.add_columns("Status", "Title", "Due", "Importance")
 
     def _update_tasks(self, tasks: list[Task]) -> None:
         self._all_tasks = tasks
@@ -57,6 +59,7 @@ class TaskTable(Vertical):
     def _display_filtered(self, tasks: list[Task]) -> None:
         if self._table is None:
             return
+        self._ensure_columns()
         self._table.clear()
         self._task_map.clear()
         if not tasks:

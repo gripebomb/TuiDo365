@@ -50,24 +50,24 @@ class EditTaskScreen(ModalScreen[dict[str, object] | None]):
 
     def __init__(self, task: Task) -> None:
         super().__init__()
-        self._task = task
+        self._task_data = task
 
     def compose(self) -> ComposeResult:
         due_str = ""
-        if self._task.due_at:
-            due_str = self._task.due_at.strftime("%Y-%m-%d")
+        if self._task_data.due_at:
+            due_str = self._task_data.due_at.strftime("%Y-%m-%d")
 
         with Grid(id="dialog"):
             yield Static("Edit Task", id="title")
             yield Static("", id="error")
             yield Label("Title:", classes="label")
-            yield Input(value=self._task.title, id="title-input")
+            yield Input(value=self._task_data.title, id="title-input")
             yield Label("Due date:", classes="label")
             yield Input(value=due_str, placeholder="YYYY-MM-DD (optional)", id="due-input")
             yield Label("Importance:", classes="label")
             yield Select(
                 [(i.value, i.value) for i in TaskImportance],
-                value=self._task.importance.value,
+                value=self._task_data.importance.value,
                 id="importance-select",
             )
             yield Button("Save", variant="primary", id="save")
@@ -89,11 +89,11 @@ class EditTaskScreen(ModalScreen[dict[str, object] | None]):
 
         result: dict[str, object] = {}
 
-        if title != self._task.title:
+        if title != self._task_data.title:
             result["title"] = title
 
         new_importance = str(importance_select.value)
-        if new_importance != self._task.importance.value:
+        if new_importance != self._task_data.importance.value:
             result["importance"] = new_importance
 
         due_str = due_input.value.strip()
