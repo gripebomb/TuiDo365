@@ -33,7 +33,7 @@ class TaskTable(Vertical):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._table: DataTable | None = None
-        self._task_map: dict[str, Task] = {}
+        self._task_map: dict[Any, Task] = {}
 
     def compose(self) -> None:  # type: ignore[misc,override]
         yield Static("Tasks", id="table-title")
@@ -61,9 +61,7 @@ class TaskTable(Vertical):
                 task.due_at.strftime("%Y-%m-%d") if task.due_at else "",
                 task.importance.value,
             )
-            key = row_key.value
-            assert key is not None
-            self._task_map[key] = task
+            self._task_map[row_key] = task
 
     def _update_selection(self, selected: Task | None) -> None:
         if self._table is None or selected is None:
@@ -82,9 +80,7 @@ class TaskTable(Vertical):
         """When a task row is selected, update the app's selected_task."""
         from mtd.tui.app import MtdApp
 
-        key = event.row_key.value
-        assert key is not None
-        task = self._task_map.get(key)
+        task = self._task_map.get(event.row_key)
         if task is not None:
             app = self.app
             assert isinstance(app, MtdApp)
