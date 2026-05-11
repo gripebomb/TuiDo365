@@ -77,11 +77,14 @@ class MtdApp(App[None]):
     sort_mode: reactive[str] = reactive("due")  # due, importance, title, created
 
     def __init__(self, settings: MtdSettings | None = None) -> None:
+        import os
         super().__init__()
         self._settings = settings or MtdSettings()
         self._auth_service: AuthService | None = None
         self._list_service: ListService | None = None
         self._task_service: TaskService | None = None
+        if os.environ.get("NO_COLOR"):
+            self.console._color_system = None
 
     def _init_services(self) -> None:
         if not self._settings.is_configured():
@@ -335,5 +338,14 @@ class MtdApp(App[None]):
 
     def action_toggle_detail(self) -> None:
         """Toggle detail pane visibility."""
-        # TODO: implement responsive detail toggle
-        pass
+        detail = self.query_one("#detail-pane", TaskDetail)
+        sidebar = self.query_one("#sidebar", ListSidebar)
+        task_pane = self.query_one("#task-pane", TaskTable)
+        if detail.display:
+            detail.display = False
+            sidebar.styles.width = "30%"
+            task_pane.styles.width = "70%"
+        else:
+            detail.display = True
+            sidebar.styles.width = "25%"
+            task_pane.styles.width = "45%"

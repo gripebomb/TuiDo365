@@ -50,6 +50,11 @@ class ListSidebar(Vertical):
         if self._option_list is None:
             return
         self._option_list.clear_options()
+        if not lists:
+            self._option_list.add_option(
+                Option("No lists found. Press 'r' to refresh.", disabled=True)
+            )
+            return
         for task_list in lists:
             label = task_list.display_name
             if task_list.is_builtin:

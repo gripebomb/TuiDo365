@@ -59,6 +59,16 @@ class TaskTable(Vertical):
             return
         self._table.clear()
         self._task_map.clear()
+        if not tasks:
+            if not self._all_tasks:
+                self._table.add_row(
+                    "", "No tasks in this list. Press 'a' to add one.", "", ""
+                )
+            else:
+                self._table.add_row(
+                    "", "No tasks match the current filter. Press '1' to show all.", "", ""
+                )
+            return
         for task in tasks:
             row_key = self._table.add_row(
                 "✓" if task.is_completed else " ",
