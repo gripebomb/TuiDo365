@@ -49,6 +49,7 @@ class StatusBar(Horizontal):
         app.watch(app, "lists", self._on_lists_change)
         app.watch(app, "tasks", self._on_tasks_change)
         app.watch(app, "error_message", self._on_error_change)
+        app.watch(app, "task_filter", self._on_filter_change)
 
     def _on_lists_change(self, lists: list[Any]) -> None:
         self._list_count = len(lists)
@@ -65,6 +66,9 @@ class StatusBar(Horizontal):
             self._error = message
         else:
             self._error = ""
+        self._update()
+
+    def _on_filter_change(self, filter_val: str) -> None:
         self._update()
 
     def _update(self) -> None:
@@ -92,6 +96,14 @@ class StatusBar(Horizontal):
                 counts.append(f"{self._task_count} tasks")
             if counts:
                 left_text += f"  |  {' | '.join(counts)}"
+
+        # Show current filter mode
+        app = self.app
+        filter_mode = getattr(app, "task_filter", "all")
+        if filter_mode == "active":
+            left_text += "  |  [green]Active only[/green]"
+        elif filter_mode == "completed":
+            left_text += "  |  [dim]Completed only[/dim]"
 
         self._left.update(left_text)
         self._right.update("Press [b]?[/b] for help")

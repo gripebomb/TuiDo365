@@ -62,6 +62,7 @@ class MtdApp(App[None]):
         ("e", "edit_task", "Edit"),
         ("slash", "search", "Search"),
         ("s", "sort_tasks", "Sort"),
+        ("h", "toggle_hide_completed", "Hide Done"),
         ("1", "filter_all", "All"),
         ("2", "filter_active", "Active"),
         ("3", "filter_completed", "Done"),
@@ -75,7 +76,7 @@ class MtdApp(App[None]):
     selected_task: reactive[Task | None] = reactive(None)
     error_message: reactive[str] = reactive("")
     search_query: reactive[str] = reactive("")
-    task_filter: reactive[str] = reactive("all")  # all, active, completed
+    task_filter: reactive[str] = reactive("active")  # all, active, completed — default hides completed
     sort_mode: reactive[str] = reactive("due")  # due, importance, title, created
 
     def __init__(self, settings: MtdSettings | None = None) -> None:
@@ -332,6 +333,14 @@ class MtdApp(App[None]):
     def action_filter_completed(self) -> None:
         """Show completed tasks only."""
         self.task_filter = "completed"
+        self._apply_task_display()
+
+    def action_toggle_hide_completed(self) -> None:
+        """Toggle between showing all tasks and hiding completed ones."""
+        if self.task_filter == "active":
+            self.task_filter = "all"
+        else:
+            self.task_filter = "active"
         self._apply_task_display()
 
     def action_help(self) -> None:

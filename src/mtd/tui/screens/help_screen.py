@@ -56,6 +56,7 @@ class HelpScreen(ModalScreen[None]):
   [b]d[/b]                Delete task
 
 [yellow bold]Search & Filter[/]
+  [b]h[/b]                Toggle hide completed
   [b]/[/b]                Search tasks
   [b]1/2/3[/b]            Filter all/active/done
   [b]s[/b]                Change sort
