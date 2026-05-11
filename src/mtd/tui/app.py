@@ -298,7 +298,13 @@ class MtdApp(App[None]):
 
         # Sort
         if self.sort_mode == "due":
-            result.sort(key=lambda t: t.due_at or datetime.max.replace(tzinfo=UTC))
+            def _due_key(task: Task) -> tuple[bool, datetime]:
+                if task.due_at is None:
+                    return (True, datetime.min)
+                # Strip tzinfo to avoid naive/aware comparison errors
+                dt = task.due_at.replace(tzinfo=None) if task.due_at.tzinfo else task.due_at
+                return (False, dt)
+            result.sort(key=_due_key)
         elif self.sort_mode == "importance":
             importance_order = {"high": 0, "normal": 1, "low": 2}
             result.sort(key=lambda t: importance_order.get(t.importance.value, 1))
