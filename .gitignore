@@ -105,6 +105,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# docs folders I don't want to sync 
+.ralph/
+
 # Ruff
 .ruff_cache/
 
