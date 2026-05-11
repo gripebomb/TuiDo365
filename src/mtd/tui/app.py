@@ -82,15 +82,17 @@ class MtdApp(App[None]):
 
     def __init__(self, settings: MtdSettings | None = None) -> None:
         import os
-        super().__init__()
+        # Apply saved theme before super().__init__() so Textual picks it up
+        saved_theme = (settings.ui.theme if settings else MtdSettings().ui.theme) or "dark"
+        theme_name = "textual-dark" if saved_theme == "dark" else "textual-light"
+        kwargs: dict[str, object] = {"theme": theme_name}
+        if os.environ.get("NO_COLOR"):
+            kwargs["color_system"] = None
+        super().__init__(**kwargs)
         self._settings = settings or MtdSettings()
         self._auth_service: AuthService | None = None
         self._list_service: ListService | None = None
         self._task_service: TaskService | None = None
-        # Apply saved theme
-        self.dark = self._settings.ui.theme == "dark"
-        if os.environ.get("NO_COLOR"):
-            self.console._color_system = None
 
     def _init_services(self) -> None:
         if not self._settings.is_configured():
@@ -393,9 +395,11 @@ class MtdApp(App[None]):
 
     def action_toggle_theme(self) -> None:
         """Toggle dark/light theme and persist to config."""
-        self.dark = not self.dark
-        new_theme = "dark" if self.dark else "light"
-        self._save_theme(new_theme)
+        # Textual uses theme names like "textual-dark" / "textual-light"
+        is_dark = self.current_theme.dark if hasattr(self, "current_theme") else True
+        new_theme_name = "textual-light" if is_dark else "textual-dark"
+        self.theme = new_theme_name
+        self._save_theme("dark" if not is_dark else "light")
 
     def _save_theme(self, theme: str) -> None:
         """Write theme preference back to config file."""
