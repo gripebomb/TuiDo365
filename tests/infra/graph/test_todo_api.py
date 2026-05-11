@@ -68,7 +68,6 @@ class TestListTasks:
     """Verify listing tasks."""
 
     def test_returns_tasks(self, repo: TodoApiRepository, mock_client: MagicMock) -> None:
-        due = datetime(2026, 4, 25, 12, 0, 0, tzinfo=UTC)
         mock_client.get.return_value = {
             "value": [
                 {
@@ -76,7 +75,7 @@ class TestListTasks:
                     "title": "Buy milk",
                     "status": "notStarted",
                     "importance": "normal",
-                    "dueDateTime": due.isoformat(),
+                    "dueDateTime": {"dateTime": "2026-04-25T12:00:00", "timeZone": "UTC"},
                     "@odata.etag": 'W/"abc"',
                 },
                 {
@@ -96,13 +95,42 @@ class TestListTasks:
         assert result[0].title == "Buy milk"
         assert result[0].status == TaskStatus.NOT_STARTED
         assert result[0].importance == TaskImportance.NORMAL
-        assert result[0].due_at == due
+        assert result[0].due_at == datetime(2026, 4, 25, 12, 0, 0)
         assert result[0].etag == 'W/"abc"'
 
         assert result[1].id == "task-2"
         assert result[1].status == TaskStatus.COMPLETED
         assert result[1].importance == TaskImportance.HIGH
         assert result[1].etag is None
+
+    def test_handles_graph_datetime_format(self, repo: TodoApiRepository, mock_client: MagicMock) -> None:
+        """Graph returns datetimes as {"dateTime": "...", "timeZone": "..."}."""
+        mock_client.get.return_value = {
+            "value": [
+                {
+                    "id": "task-1",
+                    "title": "Test task",
+                    "status": "notStarted",
+                    "completedDateTime": {
+                        "dateTime": "2025-12-11T10:30:00",
+                        "timeZone": "UTC",
+                    },
+                    "lastModifiedDateTime": {
+                        "dateTime": "2026-01-15T14:22:00",
+                        "timeZone": "America/New_York",
+                    },
+                    "reminderDateTime": {
+                        "dateTime": "2025-12-10T09:00:00",
+                        "timeZone": "UTC",
+                    },
+                }
+            ]
+        }
+        result = repo.list_tasks("list-1")
+        assert len(result) == 1
+        assert result[0].completed_at == datetime(2025, 12, 11, 10, 30, 0)
+        assert result[0].last_modified_at is not None
+        assert result[0].reminder_at is not None
 
     def test_empty_response(self, repo: TodoApiRepository, mock_client: MagicMock) -> None:
         mock_client.get.return_value = {"value": []}

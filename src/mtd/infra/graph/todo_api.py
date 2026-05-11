@@ -6,10 +6,33 @@ infrastructure boundary.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from mtd.domain.models import Task, TaskList
 from mtd.infra.graph.client import GraphClient
+
+# Fields that Graph returns as {"dateTime": "...", "timeZone": "..."}
+_GRAPH_DATETIME_FIELDS = frozenset([
+    "dueDateTime", "startDateTime", "reminderDateTime",
+    "completedDateTime", "lastModifiedDateTime",
+])
+
+
+def _convert_datetime(value: Any) -> datetime | None:
+    """Parse a Graph datetime object or string into a datetime."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, dict):
+        dt_str = value.get("dateTime")
+        if dt_str is None:
+            return None
+        return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+    if isinstance(value, str):
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return None
 
 
 def _map_task(raw: dict[str, Any], list_id: str) -> Task:
@@ -23,6 +46,9 @@ def _map_task(raw: dict[str, Any], list_id: str) -> Task:
     etag = data.pop("@odata.etag", None)
     if etag is not None:
         data["etag"] = etag
+    for field in _GRAPH_DATETIME_FIELDS:
+        if field in data:
+            data[field] = _convert_datetime(data[field])
     return Task(**data)
 
 
