@@ -85,3 +85,16 @@ class TaskTable(Vertical):
             app = self.app
             assert isinstance(app, MtdApp)
             app.selected_task = task
+
+    def on_key(self, event) -> None:
+        """Vim-style navigation."""
+        if self._table is None:
+            return
+        if event.key == "j":
+            self._table.action_cursor_down()
+        elif event.key == "k":
+            self._table.action_cursor_up()
+        elif event.key == "g":
+            self._table.move_cursor(row=0)
+        elif event.key == "G":
+            self._table.move_cursor(row=self._table.row_count - 1)

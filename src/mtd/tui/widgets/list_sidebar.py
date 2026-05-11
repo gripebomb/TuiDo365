@@ -80,3 +80,12 @@ class ListSidebar(Vertical):
             if task_list.id == option_id:
                 app.selected_list = task_list
                 return
+
+    def on_key(self, event) -> None:
+        """Vim-style navigation."""
+        if event.key == "j":
+            if self._option_list is not None:
+                self._option_list.action_cursor_down()
+        elif event.key == "k":
+            if self._option_list is not None:
+                self._option_list.action_cursor_up()

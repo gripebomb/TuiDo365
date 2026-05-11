@@ -23,17 +23,42 @@ class MtdApp(App[None]):
 
     CSS = """
     Screen { align: center middle; }
-    #main-container { layout: horizontal; height: 100%; }
+    #main-container { layout: horizontal; height: 1fr; }
     #sidebar { width: 25%; height: 100%; border: solid $primary; }
     #task-pane { width: 45%; height: 100%; border: solid $primary; }
     #detail-pane { width: 30%; height: 100%; border: solid $primary; }
     .panel-title { text-align: center; text-style: bold; padding: 1; }
+    #status-bar { height: auto; dock: bottom; }
     """
+
+    def action_cycle_focus(self) -> None:
+        """Cycle focus between panels."""
+        focused = self.focused
+        if focused is None:
+            self.set_focus(self.query_one("#sidebar", ListSidebar))
+            return
+        if focused.parent and focused.parent.id == "sidebar":
+            self.set_focus(self.query_one("#task-pane", TaskTable))
+        elif focused.parent and focused.parent.id == "task-pane":
+            self.set_focus(self.query_one("#detail-pane", TaskDetail))
+        else:
+            self.set_focus(self.query_one("#sidebar", ListSidebar))
 
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("r", "refresh", "Refresh"),
         ("tab", "cycle_focus", "Focus"),
+        ("c", "toggle_complete", "Complete"),
+        ("a", "add_task", "Add"),
+        ("d", "delete_task", "Delete"),
+        ("e", "edit_task", "Edit"),
+        ("slash", "search", "Search"),
+        ("s", "sort_tasks", "Sort"),
+        ("1", "filter_all", "All"),
+        ("2", "filter_active", "Active"),
+        ("3", "filter_completed", "Done"),
+        ("question_mark", "help", "Help"),
+        ("i", "toggle_detail", "Info"),
     ]
 
     lists: reactive[list[TaskList]] = reactive(list)
@@ -96,3 +121,77 @@ class MtdApp(App[None]):
         """When the selected list changes, reload tasks."""
         self.selected_task = None
         self.refresh_tasks()
+
+    def action_toggle_complete(self) -> None:
+        """Toggle completion status of selected task."""
+        if self._task_service is None or self.selected_task is None:
+            return
+        task = self.selected_task
+        new_status = "completed" if task.status.value == "notStarted" else "notStarted"
+        try:
+            self._task_service.update_task(
+                task.list_id, task.id, {"status": new_status}
+            )
+            self.refresh_tasks()
+            self.error_message = "Task updated"
+        except MtdError as exc:
+            self.error_message = exc.message
+
+    def action_add_task(self) -> None:
+        """Open add task dialog."""
+        # TODO: implement add task screen
+        self.error_message = "Add task: not yet implemented"
+
+    def action_delete_task(self) -> None:
+        """Delete selected task with confirmation."""
+        if self._task_service is None or self.selected_task is None:
+            return
+        # TODO: add confirmation dialog
+        task = self.selected_task
+        try:
+            self._task_service.delete_task(task.list_id, task.id)
+            self.selected_task = None
+            self.refresh_tasks()
+            self.error_message = "Task deleted"
+        except MtdError as exc:
+            self.error_message = exc.message
+
+    def action_edit_task(self) -> None:
+        """Open edit task dialog."""
+        # TODO: implement edit task screen
+        self.error_message = "Edit task: not yet implemented"
+
+    def action_search(self) -> None:
+        """Activate task search."""
+        # TODO: implement search
+        self.error_message = "Search: not yet implemented"
+
+    def action_sort_tasks(self) -> None:
+        """Cycle sort mode."""
+        # TODO: implement sort cycling
+        self.error_message = "Sort: not yet implemented"
+
+    def action_filter_all(self) -> None:
+        """Show all tasks."""
+        # TODO: implement filter
+        pass
+
+    def action_filter_active(self) -> None:
+        """Show active tasks only."""
+        # TODO: implement filter
+        pass
+
+    def action_filter_completed(self) -> None:
+        """Show completed tasks only."""
+        # TODO: implement filter
+        pass
+
+    def action_help(self) -> None:
+        """Show help overlay."""
+        # TODO: implement help screen
+        self.error_message = "Help: not yet implemented"
+
+    def action_toggle_detail(self) -> None:
+        """Toggle detail pane visibility."""
+        # TODO: implement responsive detail toggle
+        pass
