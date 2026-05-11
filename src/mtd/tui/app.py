@@ -82,17 +82,17 @@ class MtdApp(App[None]):
 
     def __init__(self, settings: MtdSettings | None = None) -> None:
         import os
-        # Apply saved theme before super().__init__() so Textual picks it up
-        saved_theme = (settings.ui.theme if settings else MtdSettings().ui.theme) or "dark"
-        theme_name = "textual-dark" if saved_theme == "dark" else "textual-light"
-        kwargs: dict[str, object] = {"theme": theme_name}
-        if os.environ.get("NO_COLOR"):
-            kwargs["color_system"] = None
-        super().__init__(**kwargs)
+        super().__init__()
         self._settings = settings or MtdSettings()
         self._auth_service: AuthService | None = None
         self._list_service: ListService | None = None
         self._task_service: TaskService | None = None
+        # Apply saved theme after init
+        saved_theme = self._settings.ui.theme or "dark"
+        theme_name = "textual-dark" if saved_theme == "dark" else "textual-light"
+        self.theme = theme_name
+        if os.environ.get("NO_COLOR"):
+            self.console._color_system = None
 
     def _init_services(self) -> None:
         if not self._settings.is_configured():
