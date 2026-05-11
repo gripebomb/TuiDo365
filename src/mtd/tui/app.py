@@ -165,7 +165,7 @@ class MtdApp(App[None]):
                     task_list.id, task.id, {"status": "notStarted"}
                 )
             self.refresh_tasks()
-            self.error_message = "Task updated"
+            self.error_message = ""
         except MtdError as exc:
             self.error_message = exc.message
 
@@ -199,7 +199,7 @@ class MtdApp(App[None]):
                     importance=importance,
                 )
                 self.refresh_tasks()
-                self.error_message = "Task created"
+                self.error_message = ""
             except MtdError as exc:
                 self.error_message = exc.message
             except Exception as exc:
@@ -221,7 +221,7 @@ class MtdApp(App[None]):
             )
             self.selected_task = None
             self.refresh_tasks()
-            self.error_message = "Task deleted"
+            self.error_message = ""
         except MtdError as exc:
             self.error_message = exc.message
 
@@ -255,7 +255,7 @@ class MtdApp(App[None]):
                     self.selected_list.display_name, task.id, **kwargs
                 )
                 self.refresh_tasks()
-                self.error_message = "Task updated"
+                self.error_message = ""
             except MtdError as exc:
                 self.error_message = exc.message
             except Exception as exc:
@@ -314,7 +314,7 @@ class MtdApp(App[None]):
             self.sort_mode = modes[(idx + 1) % len(modes)]
         except ValueError:
             self.sort_mode = modes[0]
-        self.error_message = f"Sort: {self.sort_mode}"
+        self.error_message = ""
         self._apply_task_display()
 
     def action_filter_all(self) -> None:
