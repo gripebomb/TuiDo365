@@ -55,6 +55,10 @@ class HelpScreen(ModalScreen[None]):
   [b]e[/b]                Edit task
   [b]d[/b]                Delete task
 
+[yellow bold]Smart Views[/]
+  [b]Important[/b]        High-importance tasks from all lists
+  [b]Planned[/b]         Tasks with due dates from all lists
+
 [yellow bold]Search & Filter[/]
   [b]h[/b]                Toggle hide completed
   [b]/[/b]                Search tasks

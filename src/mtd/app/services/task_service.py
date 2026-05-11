@@ -124,6 +124,30 @@ class TaskService:
         task_list = self._resolve_list(list_name)
         self._api.delete_task(task_list.id, task_id)
 
+    def get_all_tasks(self) -> list[Task]:
+        """Fetch all tasks from all lists."""
+        lists = self._api.list_lists()
+        if self._cache is not None:
+            self._cache.save_lists(lists)
+        all_tasks: list[Task] = []
+        for task_list in lists:
+            try:
+                tasks = self._api.list_tasks(task_list.id)
+                if self._cache is not None:
+                    self._cache.save_tasks(task_list.id, tasks)
+                all_tasks.extend(tasks)
+            except GraphNetworkError:
+                continue
+        return all_tasks
+
+    def get_important_tasks(self) -> list[Task]:
+        """Get all high-importance tasks across all lists."""
+        return [t for t in self.get_all_tasks() if t.importance.value == "high"]
+
+    def get_planned_tasks(self) -> list[Task]:
+        """Get all tasks with due dates across all lists."""
+        return [t for t in self.get_all_tasks() if t.due_at is not None]
+
     # ── helpers ────────────────────────────────────────────────────────
 
     def _resolve_list(self, list_name: str) -> TaskList:

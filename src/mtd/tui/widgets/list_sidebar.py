@@ -55,6 +55,10 @@ class ListSidebar(Vertical):
                 Option("No lists found. Press 'r' to refresh.", disabled=True)
             )
             return
+        # Virtual smart views
+        self._option_list.add_option(Option("Important", id="__important__"))
+        self._option_list.add_option(Option("Planned", id="__planned__"))
+        self._option_list.add_option(Option("─" * 20, disabled=True))
         for task_list in lists:
             label = task_list.display_name
             if task_list.is_builtin:
@@ -81,6 +85,19 @@ class ListSidebar(Vertical):
         app = self.app
         assert isinstance(app, MtdApp)
         option_id = event.option_id
+        # Virtual smart views
+        if option_id == "__important__":
+            app.selected_list = TaskList(
+                id="__important__",
+                display_name="Important",
+            )
+            return
+        if option_id == "__planned__":
+            app.selected_list = TaskList(
+                id="__planned__",
+                display_name="Planned",
+            )
+            return
         for task_list in app.lists:
             if task_list.id == option_id:
                 app.selected_list = task_list

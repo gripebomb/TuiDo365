@@ -54,7 +54,19 @@ class TaskTable(Vertical):
 
     def _update_tasks(self, tasks: list[Task]) -> None:
         self._all_tasks = tasks
+        self._update_title()
         self._display_filtered(tasks)
+
+    def _update_title(self) -> None:
+        app = self.app
+        if hasattr(app, "selected_list") and app.selected_list is not None:
+            title = app.selected_list.display_name
+            if app.selected_list.id == "__important__":
+                title = "⭐ Important"
+            elif app.selected_list.id == "__planned__":
+                title = "📅 Planned"
+            title_widget = self.query_one("#table-title", Static)
+            title_widget.update(title)
 
     def _display_filtered(self, tasks: list[Task]) -> None:
         if self._table is None:

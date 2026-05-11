@@ -120,13 +120,22 @@ class MtdApp(App[None]):
             self.error_message = exc.message
 
     def refresh_tasks(self) -> None:
-        """Load tasks for the currently selected list."""
+        """Load tasks for the currently selected list or smart view."""
         if self._task_service is None or self.selected_list is None:
             self.tasks = []
             return
         try:
-            _, tasks, _ = self._task_service.get_tasks_by_list_name(self.selected_list.display_name)
-            self.tasks = tasks
+            if self.selected_list.id == "__important__":
+                tasks = self._task_service.get_important_tasks()
+                self.tasks = tasks
+            elif self.selected_list.id == "__planned__":
+                tasks = self._task_service.get_planned_tasks()
+                self.tasks = tasks
+            else:
+                _, tasks, _ = self._task_service.get_tasks_by_list_name(
+                    self.selected_list.display_name
+                )
+                self.tasks = tasks
             self.error_message = ""
         except MtdError as exc:
             self.error_message = exc.message
@@ -149,6 +158,12 @@ class MtdApp(App[None]):
         self.selected_task = None
         self.refresh_tasks()
 
+    def _is_virtual_list(self) -> bool:
+        return self.selected_list is not None and self.selected_list.id in (
+            "__important__",
+            "__planned__",
+        )
+
     def action_toggle_complete(self) -> None:
         """Toggle completion status of selected task."""
         if self._task_service is None or self.selected_task is None or self.selected_list is None:
@@ -156,17 +171,26 @@ class MtdApp(App[None]):
         task = self.selected_task
         try:
             if task.status.value == "notStarted":
-                self._task_service.complete_task(
-                    self.selected_list.display_name, task.id
-                )
+                if self._is_virtual_list():
+                    self._task_service._api.update_task(
+                        task.list_id, task.id, {"status": "completed"}
+                    )
+                else:
+                    self._task_service.complete_task(
+                        self.selected_list.display_name, task.id
+                    )
             else:
-                # Mark as not started using the API directly
-                task_list = self._task_service._resolve_list(
-                    self.selected_list.display_name
-                )
-                self._task_service._api.update_task(
-                    task_list.id, task.id, {"status": "notStarted"}
-                )
+                if self._is_virtual_list():
+                    self._task_service._api.update_task(
+                        task.list_id, task.id, {"status": "notStarted"}
+                    )
+                else:
+                    task_list = self._task_service._resolve_list(
+                        self.selected_list.display_name
+                    )
+                    self._task_service._api.update_task(
+                        task_list.id, task.id, {"status": "notStarted"}
+                    )
             self.refresh_tasks()
             self.error_message = ""
         except MtdError as exc:
@@ -176,6 +200,9 @@ class MtdApp(App[None]):
         """Open add task dialog."""
         if self._task_service is None or self.selected_list is None:
             self.error_message = "Select a list first"
+            return
+        if self._is_virtual_list():
+            self.error_message = "Switch to a real list to add tasks"
             return
 
         def on_result(result: dict[str, object] | None) -> None:
@@ -219,9 +246,12 @@ class MtdApp(App[None]):
             return
         task = self.selected_task
         try:
-            self._task_service.delete_task(
-                self.selected_list.display_name, task.id
-            )
+            if self._is_virtual_list():
+                self._task_service._api.delete_task(task.list_id, task.id)
+            else:
+                self._task_service.delete_task(
+                    self.selected_list.display_name, task.id
+                )
             self.selected_task = None
             self.refresh_tasks()
             self.error_message = ""
@@ -254,9 +284,14 @@ class MtdApp(App[None]):
                     if due_str:
                         kwargs["due_at"] = datetime.fromisoformat(due_str)
 
-                self._task_service.update_task(
-                    self.selected_list.display_name, task.id, **kwargs
-                )
+                if self._is_virtual_list():
+                    self._task_service._api.update_task(
+                        task.list_id, task.id, kwargs
+                    )
+                else:
+                    self._task_service.update_task(
+                        self.selected_list.display_name, task.id, **kwargs
+                    )
                 self.refresh_tasks()
                 self.error_message = ""
             except MtdError as exc:
