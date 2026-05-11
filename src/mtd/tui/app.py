@@ -21,6 +21,8 @@ from mtd.tui.screens.add_task_screen import AddTaskScreen
 from mtd.tui.screens.edit_task_screen import EditTaskScreen
 from mtd.tui.screens.help_screen import HelpScreen
 from mtd.tui.screens.main_screen import MainScreen
+from mtd.tui.widgets.list_sidebar import ListSidebar
+from mtd.tui.widgets.task_detail import TaskDetail
 from mtd.tui.widgets.task_table import TaskTable
 
 
